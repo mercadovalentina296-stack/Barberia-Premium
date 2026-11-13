@@ -29,16 +29,16 @@ app.get("/api/db-test", async (req, res) => {
 
         res.json({
             ok: true,
-            message: "Conexión con MySQL exitosa",
+            message: "Conexión con Supabase exitosa",
             data: rows
         });
 
     } catch (error) {
-        console.error("Error de MySQL:", error);
+        console.error("Error de Supabase:", error);
 
         res.status(500).json({
             ok: false,
-            message: "Error al conectar con MySQL",
+            message: "Error al conectar con Supabase",
             error: error.message
         });
     }
@@ -114,7 +114,7 @@ app.post("/api/reservas", async (req, res) => {
   } catch (error) {
     console.error("Error al crear reserva:", error);
 
-    if (error.code === "ER_DUP_ENTRY") {
+    if (["ER_DUP_ENTRY", "23505"].includes(error.code)) {
       return res.status(409).json({
         ok: false,
         message: "Ese horario ya está ocupado. Elegí otro."

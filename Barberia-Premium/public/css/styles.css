@@ -1657,3 +1657,33 @@ body:has(#lista-admin) .site-footer {
     height: 190px;
   }
 }
+
+/* Pulido visual: conserva la identidad negra y dorada de Barbería Premium. */
+:root { --gold:#d8b65a; --gold-light:#f4d987; --black:#080909; --panel:#141515; --panel-2:#1c1d1d; --line:rgba(216,182,90,.22); --radius:18px; }
+body { background:radial-gradient(ellipse at 50% -20%, rgba(216,182,90,.075), transparent 42%),var(--black); }
+.site-header { background:rgba(8,9,9,.88); border-bottom-color:rgba(216,182,90,.2); box-shadow:0 8px 28px rgba(0,0,0,.18); }
+.brand { letter-spacing:2px; text-shadow:0 2px 18px rgba(216,182,90,.14); }
+.nav-links a { position:relative; padding:8px 0; }
+.nav-links a::after { content:""; position:absolute; left:0; bottom:1px; width:0; height:1px; background:var(--gold); transition:width .22s ease; }
+.nav-links a:hover::after,.nav-links a.active::after { width:100%; }
+.btn { border-radius:8px; box-shadow:0 8px 22px rgba(216,182,90,.12); letter-spacing:.2px; }
+.btn-outline { box-shadow:none; }
+.hero { position:relative; background-position:center 44%; }
+.hero-content { animation:heroIn .7s ease both; }
+.hero h1 { letter-spacing:1px; text-shadow:0 5px 24px rgba(0,0,0,.5); }
+.section { padding-top:94px; padding-bottom:94px; }
+.section-heading h2 { letter-spacing:.7px; }
+.card { border-color:rgba(216,182,90,.18); box-shadow:0 16px 40px rgba(0,0,0,.18); transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease; }
+.card:hover { transform:translateY(-5px); border-color:rgba(216,182,90,.48); box-shadow:0 22px 48px rgba(0,0,0,.3); }
+.card-body { padding:25px; }
+.gallery-card { border-radius:16px; }
+.gallery-card img { transition:transform .45s ease,filter .3s ease; }
+.gallery-card:hover img { transform:scale(1.055); }
+.form-shell { background:linear-gradient(145deg,rgba(27,28,27,.98),rgba(15,16,16,.98)); box-shadow:0 24px 70px rgba(0,0,0,.35); border-color:rgba(216,182,90,.26); }
+.field input,.field select,.field textarea { border-color:#3a3b38; transition:border-color .2s,box-shadow .2s; }
+.field input:focus,.field select:focus,.field textarea:focus { border-color:var(--gold); box-shadow:0 0 0 3px rgba(216,182,90,.12); }
+.page-hero { background:radial-gradient(ellipse at 80% 0%,rgba(216,182,90,.13),transparent 45%),linear-gradient(120deg,#19170f,#090909); }
+.promo { box-shadow:0 16px 38px rgba(0,0,0,.2); }
+.site-footer { background:#070808; }
+@keyframes heroIn { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation:none!important; transition:none!important; } }
