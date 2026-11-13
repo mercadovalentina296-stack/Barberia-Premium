@@ -1,0 +1,935 @@
+ <!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel administrador | Barbería Premium</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a class="brand" href="index.html">BARBERÍA PREMIUM</a>
+    <a href="index.html">Volver al inicio</a>
+  </div>
+</header>
+
+<main class="form-shell">
+  <h1>Panel de administrador</h1>
+  <p>Administración de turnos de Barbería Premium.</p>
+
+  <div id="mensaje" class="form-message"></div>
+
+  <div id="lista-admin">
+    Cargando reservas...
+  </div>
+  <section class="form-shell">
+  <h2>Opiniones pendientes</h2>
+  <p id="mensaje-opiniones"></p>
+  <div id="lista-opiniones-admin"></div>
+</section>
+<section class="form-shell">
+  <h2>Administrar servicios</h2>
+  <p id="mensaje-servicios"></p>
+  <div id="lista-servicios-admin">
+    cargando servicios.........
+  </div>
+  <h3>Agregar nuevo servicio</h3>
+
+<form id="form-servicio">
+  <label>Nombre del servicio</label>
+  <input type="text" id="nombre-servicio" required>
+
+  <label>Descripción</label>
+  <textarea id="descripcion-servicio" required></textarea>
+
+  <label>Precio</label>
+  <input type="number" id="precio-servicio" min="1" required>
+
+  <label>Duración en minutos</label>
+  <input type="number" id="duracion-servicio" min="1" required>
+
+  <button type="submit" class="btn">Guardar servicio</button>
+</form>
+</section>
+</main>
+
+
+<footer class="site-footer">
+  <div class="container">
+    © 2026 Barbería Premium
+  </div>
+</footer>
+
+<script src="js/api.js"></script>
+<section class="form-shell">
+  <h2>Administrar promociones</h2>
+
+  <p id="mensaje-promociones-admin"></p>
+  <div id="lista-promociones-admin">
+    Cargando promociones
+  </div>
+
+  <h3>Agregar nueva promoción</h3>
+
+  <form id="form-promocion-admin">
+
+    <label>Título de la promoción</label>
+    <input type="text" id="titulo-promocion-admin" required>
+
+    <label>Descripción</label>
+    <textarea id="descripcion-promocion-admin"></textarea>
+
+    <label>Descuento (%)</label>
+    <input
+      type="number"
+      id="descuento-promocion-admin"
+      min="1"
+      max="100"
+      required
+    >
+
+    <label>Fecha de inicio</label>
+    <input type="date" id="inicio-promocion-admin" required>
+
+    <label>Fecha de finalización</label>
+    <input type="date" id="fin-promocion-admin" required>
+
+    <button type="submit" class="btn">
+      Guardar promoción
+    </button>
+
+  </form>
+</section>
+<!-- ADMINISTRAR GALERÍA -->
+<section class="form-shell">
+  <h2>Administrar galería</h2>
+
+  <p id="mensaje-galeria-admin"></p>
+
+  <div id="lista-galeria-admin">
+    Cargando galería...
+  </div>
+
+  <h3>Agregar imagen a la galería</h3>
+
+  <form id="form-galeria-admin">
+    <label for="titulo-galeria">Título</label>
+    <input
+      type="text"
+      id="titulo-galeria"
+      required
+    >
+
+    <label for="imagen-galeria">Ruta de la imagen</label>
+    <input
+      type="text"
+      id="imagen-galeria"
+      placeholder="assets/img/degradado.jpg"
+      required
+    >
+
+    <label for="descripcion-galeria">Descripción</label>
+    <textarea
+      id="descripcion-galeria"
+    ></textarea>
+
+    <button type="submit">Agregar a la galería</button>
+  </form>
+</section>
+ <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const usuario = obtenerUsuario();
+  const lista = document.getElementById("lista-admin");
+  const mensaje = document.getElementById("mensaje");
+
+  if (!usuario) {
+    mensaje.textContent = "Iniciá sesión para continuar.";
+    return;
+  }
+
+  if (usuario.rol !== "admin") {
+    mensaje.textContent = "No tenés permisos de administrador.";
+    return;
+  }
+
+  async function cargarReservas() {
+    try {
+      mensaje.textContent = "Cargando reservas...";
+
+      const data = await apiRequest(
+        `/api/admin/reservas/${usuario.id}`
+      );
+
+      lista.innerHTML = "";
+      mensaje.textContent = "";
+
+      const titulo = document.createElement("h2");
+      titulo.textContent =
+        `Reservas registradas: ${data.reservas.length}`;
+
+      lista.appendChild(titulo);
+
+      if (data.reservas.length === 0) {
+        lista.append("Todavía no hay reservas.");
+        return;
+      }
+
+      data.reservas.forEach(reserva => {
+        const tarjeta = document.createElement("div");
+        tarjeta.className = "service-card";
+
+        const cliente = document.createElement("h3");
+        cliente.textContent = reserva.cliente;
+
+        const servicio = document.createElement("p");
+        servicio.textContent = `Servicio: ${reserva.servicio}`;
+
+        const fecha = document.createElement("p");
+        fecha.textContent =
+         ` Fecha: ${String(reserva.fecha).split("T")[0]}`;
+
+        const hora = document.createElement("p");
+        hora.textContent =
+      `Horario: ${String(reserva.hora).slice(0, 5)}`;
+
+        const telefono = document.createElement("p");
+        telefono.textContent =
+          `Teléfono: ${reserva.telefono || "No informado"}`;
+
+        const estado = document.createElement("p");
+        estado.textContent = `Estado: ${reserva.estado}`;
+
+        tarjeta.append(
+          cliente, servicio, fecha, hora, telefono, estado
+        );
+
+        if (reserva.estado === "pendiente") {
+          const confirmar = document.createElement("button");
+          confirmar.type = "button";
+          confirmar.className = "btn";
+          confirmar.textContent = "Confirmar turno";
+
+          confirmar.addEventListener("click", () => {
+            cambiarEstado(reserva.id, "confirmada");
+          });
+
+          const cancelar = document.createElement("button");
+          cancelar.type = "button";
+          cancelar.className = "btn btn-outline";
+          cancelar.textContent = "Cancelar turno";
+
+          cancelar.addEventListener("click", () => {
+            cambiarEstado(reserva.id, "cancelada");
+          });
+
+          tarjeta.append(confirmar, cancelar);
+        }
+
+        lista.appendChild(tarjeta);
+      });
+
+    } catch (error) {
+      mensaje.textContent = error.message;
+    }
+  }
+
+  async function cambiarEstado(id, estado) {
+    try {
+      const data = await apiRequest(
+        `/api/admin/reservas/${id}/estado`,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            usuario_id: usuario.id,
+            estado
+          })
+        }
+      );
+
+      mensaje.textContent = data.message;
+      await cargarReservas();
+
+    } catch (error) {
+      mensaje.textContent = error.message;
+    }
+  }
+    async function cargarOpinionesPendientes() {
+    const listaOpiniones = document.getElementById("lista-opiniones-admin");
+    const mensajeOpiniones = document.getElementById("mensaje-opiniones");
+
+    try {
+      mensajeOpiniones.textContent = "Cargando opiniones...";
+
+      const data = await apiRequest(
+        `/api/admin/opiniones/${usuario.id}`
+      );
+
+      listaOpiniones.innerHTML = "";
+      mensajeOpiniones.textContent = "";
+
+      if (data.opiniones.length === 0) {
+        listaOpiniones.textContent = "No hay opiniones pendientes.";
+        return;
+      }
+
+      data.opiniones.forEach(opinion => {
+        const tarjeta = document.createElement("div");
+        tarjeta.className = "service-card";
+
+        const cliente = document.createElement("h3");
+        cliente.textContent = opinion.nombre;
+
+        const puntuacion = document.createElement("p");
+        puntuacion.textContent = `Puntuación: ${opinion.puntuacion}/5 estrellas`;
+
+        const comentario = document.createElement("p");
+        comentario.textContent = opinion.comentario;
+
+        const aprobar = document.createElement("button");
+        aprobar.type = "button";
+        aprobar.className = "btn";
+        aprobar.textContent = "Aprobar opinión";
+
+        aprobar.addEventListener("click", async () => {
+          try {
+            const resultado = await apiRequest(
+              `/api/admin/opiniones/${opinion.id}/aprobar`,
+              {
+                method: "PUT",
+                body: JSON.stringify({
+                  usuario_id: usuario.id
+                })
+              }
+            );
+
+            mensajeOpiniones.textContent = resultado.message;
+            await cargarOpinionesPendientes();
+
+          } catch (error) {
+            mensajeOpiniones.textContent = error.message;
+          }
+        });
+
+        tarjeta.append(
+          cliente,
+          puntuacion,
+          comentario,
+          aprobar
+        );
+
+        listaOpiniones.appendChild(tarjeta);
+      });
+
+    } catch (error) {
+      mensajeOpiniones.textContent = error.message;
+    }
+  }
+  async function cargarServiciosAdmin() {
+  const lista = document.getElementById("lista-servicios-admin");
+  const mensaje = document.getElementById("mensaje-servicios");
+
+  try {
+    mensaje.textContent = "Cargando servicios...";
+
+    const data = await apiRequest(`/api/admin/servicios/${usuario.id}`);
+
+    lista.innerHTML = "";
+    mensaje.textContent = "";
+
+    if (!data.servicios || data.servicios.length === 0) {
+      lista.textContent = "No hay servicios registrados.";
+      return;
+    }
+
+    data.servicios.forEach(servicio => {
+      const tarjeta = document.createElement("div");
+      tarjeta.className = "service-card";
+
+      const nombre = document.createElement("h3");
+      nombre.textContent = servicio.nombre;
+
+      const precio = document.createElement("p");
+      precio.textContent = `Precio: $${servicio.precio}`;
+
+      const duracion = document.createElement("p");
+      duracion.textContent = `Duración: ${servicio.duracion} minutos`;
+
+      const descripcion = document.createElement("p");
+      descripcion.textContent = servicio.descripcion || "";
+      // BOTÓN EDITAR SERVICIO
+const editar = document.createElement("button");
+editar.type = "button";
+editar.className = "btn";
+editar.textContent = "Editar servicio";
+
+editar.addEventListener("click", async () => {
+  const nuevoNombre = prompt("Nombre del servicio:", servicio.nombre);
+
+  if (nuevoNombre === null) return;
+
+  const nuevaDescripcion = prompt(
+    "Descripción:",
+    servicio.descripcion || ""
+  );
+
+  if (nuevaDescripcion === null) return;
+
+  const nuevoPrecio = prompt("Precio:", servicio.precio);
+
+  if (nuevoPrecio === null) return;
+
+  const nuevaDuracion = prompt(
+    "Duración en minutos:",
+    servicio.duracion
+  );
+
+  if (nuevaDuracion === null) return;
+
+  try {
+    const resultado = await apiRequest(
+      `/api/admin/servicios/${servicio.id}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({
+          usuario_id: usuario.id,
+          nombre: nuevoNombre,
+          descripcion: nuevaDescripcion,
+          precio: Number(nuevoPrecio),
+          duracion: Number(nuevaDuracion)
+        })
+      }
+    );
+
+    alert(resultado.message);
+    await cargarServiciosAdmin();
+
+  } catch (error) {
+    alert("Error: " + error.message);
+  }
+});
+
+      const desactivar = document.createElement("button");
+      desactivar.type = "button";
+      desactivar.className = "btn btn-outline";
+      desactivar.textContent = "Desactivar servicio";
+
+      desactivar.addEventListener("click", async () => {
+        const confirmar = window.confirm(
+          `¿Querés desactivar ${servicio.nombre}?`
+        );
+
+        if (!confirmar) return;
+
+        try {
+          const resultado = await apiRequest(
+            `/api/admin/servicios/${servicio.id}/desactivar`,
+            {
+              method: "PUT",
+              body: JSON.stringify({
+                usuario_id: usuario.id
+              })
+            }
+          );
+
+          alert(resultado.message);
+          await cargarServiciosAdmin();
+
+        } catch (error) {
+          alert("Error: " + error.message);
+        }
+      });
+ let accion;
+
+if (Number(servicio.activo) === 1) {
+  accion = desactivar;
+} else {
+  accion = document.createElement("button");
+  accion.textContent = "Reactivar";
+  accion.className = "btn";
+
+  accion.addEventListener("click", async () => {
+    try {
+      const respuesta = await apiRequest(
+        `/api/admin/servicios/${servicio.id}/reactivar`,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            usuario_id: usuario.id
+          })
+        }
+      );
+
+      alert(respuesta.message);
+      await cargarServiciosAdmin();
+
+    } catch (error) {
+      alert(error.message);
+    }
+  });
+}
+
+tarjeta.append(
+  nombre,
+  precio,
+  duracion,
+  descripcion,
+  editar,
+  accion
+);
+lista.appendChild(tarjeta);
+    });
+
+  } catch (error) {
+    mensaje.textContent = error.message;
+  }
+}
+
+
+
+const formServicio = document.getElementById("form-servicio");
+
+formServicio.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const nuevoServicio = {
+    usuario_id: usuario.id,
+    nombre: document.getElementById("nombre-servicio").value.trim(),
+    descripcion: document.getElementById("descripcion-servicio").value.trim(),
+    precio: Number(document.getElementById("precio-servicio").value),
+    duracion: Number(document.getElementById("duracion-servicio").value)
+  };
+
+  try {
+    const resultado = await apiRequest("/api/admin/servicios", {
+      method: "POST",
+      body: JSON.stringify(nuevoServicio)
+    });
+
+    alert(resultado.message);
+
+    formServicio.reset();
+
+    await cargarServiciosAdmin();
+
+  } catch (error) {
+    alert("Error: " + error.message);
+  }
+});
+// CARGAR PROMOCIONES DEL ADMINISTRADOR
+async function cargarPromocionesAdmin() {
+  const lista = document.getElementById("lista-promociones-admin");
+  const mensaje = document.getElementById("mensaje-promociones-admin");
+
+  try {
+    lista.textContent = "Cargando promociones...";
+
+    const data = await apiRequest(
+      `/api/admin/promociones/${usuario.id}`
+    );
+
+    lista.innerHTML = "";
+
+    if (!data.promociones || data.promociones.length === 0) {
+      lista.textContent = "No hay promociones registradas.";
+      return;
+    }
+
+    data.promociones.forEach(promocion => {
+      const tarjeta = document.createElement("div");
+      tarjeta.className = "service-card";
+
+      const titulo = document.createElement("h3");
+      titulo.textContent = promocion.titulo;
+
+      const descripcion = document.createElement("p");
+      descripcion.textContent = promocion.descripcion || "";
+
+      const descuento = document.createElement("p");
+      descuento.textContent = `Descuento: ${promocion.descuento}%`;
+
+      const fechas = document.createElement("p");
+      fechas.textContent =
+        `Desde: ${String(promocion.fecha_inicio).split("T")[0]} hasta: ${String(promocion.fecha_fin).split("T")[0]}`;
+
+      const estado = document.createElement("p");
+      estado.textContent =
+        Number(promocion.activa) === 1 ? "Estado: Activa" : "Estado: Desactivada";
+
+    const editar = document.createElement("button");
+editar.type = "button";
+editar.className = "btn";
+editar.textContent = "Editar promoción";
+
+editar.addEventListener("click", async () => {
+  const nuevoTitulo = prompt("Título:", promocion.titulo);
+  if (nuevoTitulo === null) return;
+
+  const nuevaDescripcion = prompt(
+    "Descripción:",
+    promocion.descripcion || ""
+  );
+  if (nuevaDescripcion === null) return;
+
+  const nuevoDescuento = prompt(
+    "Descuento (%):",
+    promocion.descuento
+  );
+  if (nuevoDescuento === null) return;
+
+  const nuevaFechaInicio = prompt(
+    "Fecha de inicio (AAAA-MM-DD):",
+    String(promocion.fecha_inicio).split("T")[0]
+  );
+  if (nuevaFechaInicio === null) return;
+
+  const nuevaFechaFin = prompt(
+    "Fecha de finalización (AAAA-MM-DD):",
+    String(promocion.fecha_fin).split("T")[0]
+  );
+  if (nuevaFechaFin === null) return;
+
+  try {
+    const resultado = await apiRequest(
+      `api/admin/promociones/${promocion.id}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({
+          usuario_id: usuario.id,
+          titulo: nuevoTitulo,
+          descripcion: nuevaDescripcion,
+          descuento: Number(nuevoDescuento),
+          fecha_inicio: nuevaFechaInicio,
+          fecha_fin: nuevaFechaFin
+        })
+      }
+    );
+
+    alert(resultado.message);
+    await cargarPromocionesAdmin();
+
+  } catch (error) {
+    alert(error.message);
+  }
+});
+// BOTÓN REACTIVAR PROMOCIÓN
+const reactivar = document.createElement("button");
+reactivar.type = "button";
+reactivar.className = "btn";
+reactivar.textContent = "Reactivar promoción";
+
+reactivar.addEventListener("click", async () => {
+  try {
+    const resultado = await apiRequest(
+      `/api/admin/promociones/${promocion.id}/reactivar`,
+      {
+        method: "PUT",
+        body: JSON.stringify({
+          usuario_id: usuario.id
+        })
+      }
+    );
+
+    alert(resultado.message);
+    await cargarPromocionesAdmin();
+
+  } catch (error) {
+    alert(error.message);
+  }
+});
+
+ // BOTÓN DESACTIVAR PROMOCIÓN
+const desactivar = document.createElement("button");
+desactivar.type = "button";
+desactivar.className = "btn btn-outline";
+desactivar.textContent = "Desactivar promoción";
+
+desactivar.addEventListener("click", async () => {
+  const confirmar = confirm(
+    `¿Querés desactivar la promoción ${promocion.titulo}?`
+  );
+
+  if (!confirmar) return;
+console.log("Desactivando promocion:",promocion.id);
+  try {
+
+    const resultado = await apiRequest(
+      `/api/admin/promociones/${promocion.id}/desactivar`,
+      {
+        method: "PUT",
+        body: JSON.stringify({
+          usuario_id: usuario.id
+        })
+      }
+    );
+
+    alert(resultado.message);
+    await cargarPromocionesAdmin();
+
+  } catch (error) {
+    alert(error.message);
+  }
+});
+
+ tarjeta.append(
+  titulo,
+  descripcion,
+  descuento,
+  fechas,
+  estado,
+  editar
+);
+
+if (Number(promocion.activa) === 1) {
+  tarjeta.appendChild(desactivar);
+} else {
+  tarjeta.appendChild(reactivar);
+}
+
+lista.appendChild(tarjeta);
+
+lista.appendChild(tarjeta);
+
+
+    });
+
+  } catch (error) {
+    mensaje.textContent = error.message;
+    lista.innerHTML = "";
+  }
+}
+
+const formPromocion = document.getElementById("form-promocion-admin");
+
+formPromocion.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const nuevaPromocion = {
+    usuario_id: usuario.id,
+    titulo: document.getElementById("titulo-promocion-admin").value.trim(),
+    descripcion: document.getElementById("descripcion-promocion-admin").value.trim(),
+    descuento: Number(document.getElementById("descuento-promocion-admin").value),
+    fecha_inicio: document.getElementById("inicio-promocion-admin").value,
+    fecha_fin: document.getElementById("fin-promocion-admin").value
+  };
+
+  if (nuevaPromocion.fecha_fin < nuevaPromocion.fecha_inicio) {
+    document.getElementById("mensaje-promociones-admin").textContent =
+      "La fecha de finalización no puede ser anterior al inicio.";
+    return;
+  }
+
+  try {
+    const resultado = await apiRequest("/api/admin/promociones", {
+      method: "POST",
+      body: JSON.stringify(nuevaPromocion)
+    });
+
+   const mensajePromociones = document.getElementById("mensaje-promociones-admin");
+
+     mensajePromociones.textContent = resultado.message;
+     mensajePromociones.style.color = "#d4af37";
+
+    alert(resultado.message);
+
+formPromocion.reset();
+
+  } catch (error) {
+    document.getElementById("mensaje-promociones-admin").textContent =
+      error.message;
+  }
+});
+
+
+// CARGAR GALERÍA EN EL PANEL ADMIN
+async function cargarGaleriaAdmin() {
+  const usuario = obtenerUsuario();
+  const lista = document.getElementById("lista-galeria-admin");
+  const mensaje = document.getElementById("mensaje-galeria-admin");
+
+  try {
+    const respuesta = await apiRequest(
+      `/api/admin/galeria/${usuario.id}`
+    );
+
+    lista.innerHTML = "";
+
+    if (!respuesta.imagenes.length) {
+      lista.textContent = "Todavía no hay imágenes en la galería.";
+      return;
+    }
+
+    respuesta.imagenes.forEach((imagen) => {
+      const tarjeta = document.createElement("div");
+      tarjeta.className = "gallery-card";
+   const foto = document.createElement("img");
+   foto.src = "/" + imagen.imagen.replace(/^\/+/, "");
+    foto.alt = imagen.titulo;
+  foto.className = "gallery-image";
+      const titulo = document.createElement("h3");
+      titulo.textContent = imagen.titulo;
+
+      const descripcion = document.createElement("p");
+      descripcion.textContent = imagen.descripcion || "Sin descripción";
+
+      const estado = document.createElement("p");
+      estado.textContent = Number(imagen.activa) === 1
+        ? "Estado: Activa"
+        : "Estado: Desactivada";
+
+       // BOTÓN EDITAR
+const editar = document.createElement("button");
+editar.textContent = "Editar";
+
+editar.addEventListener("click", async () => {
+  const nuevoTitulo = prompt("Nuevo título:", imagen.titulo);
+  if (nuevoTitulo === null) return;
+
+  const nuevaImagen = prompt("Ruta de la imagen:", imagen.imagen);
+  if (nuevaImagen === null) return;
+
+  const nuevaDescripcion = prompt(
+    "Nueva descripción:",
+    imagen.descripcion || ""
+  );
+  if (nuevaDescripcion === null) return;
+
+  try {
+    const respuesta = await apiRequest(
+      `/api/admin/galeria/${imagen.id}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({
+          usuario_id: usuario.id,
+          titulo: nuevoTitulo,
+          imagen: nuevaImagen,
+          descripcion: nuevaDescripcion
+        })
+      }
+    );
+
+    mensaje.textContent = respuesta.message;
+    cargarGaleriaAdmin();
+
+  } catch (error) {
+    mensaje.textContent = error.message;
+  }
+});
+
+ tarjeta.append(foto, titulo, descripcion, estado, editar);
+
+// BOTÓN DESACTIVAR
+const desactivar = document.createElement("button");
+desactivar.textContent = "Desactivar";
+
+desactivar.addEventListener("click", async () => {
+  if (!confirm("¿Querés desactivar esta imagen?")) return;
+
+  try {
+    const respuesta = await apiRequest(
+      `/api/admin/galeria/${imagen.id}/desactivar`,
+      {
+        method: "PUT",
+        body: JSON.stringify({
+          usuario_id: usuario.id
+        })
+      }
+    );
+
+    mensaje.textContent = respuesta.message;
+    cargarGaleriaAdmin();
+
+  } catch (error) {
+    mensaje.textContent = error.message;
+  }
+});
+
+// BOTÓN REACTIVAR
+const reactivar = document.createElement("button");
+reactivar.textContent = "Reactivar";
+
+reactivar.addEventListener("click", async () => {
+  try {
+    const respuesta = await apiRequest(
+      `/api/admin/galeria/${imagen.id}/reactivar`,
+      {
+        method: "PUT",
+        body: JSON.stringify({
+          usuario_id: usuario.id
+        })
+      }
+    );
+
+    mensaje.textContent = respuesta.message;
+    cargarGaleriaAdmin();
+
+  } catch (error) {
+    mensaje.textContent = error.message;
+  }
+});
+
+if (Number(imagen.activa) === 1) {
+  tarjeta.appendChild(desactivar);
+} else {
+  tarjeta.appendChild(reactivar);
+}
+
+lista.appendChild(tarjeta);
+    });
+
+    mensaje.textContent = "";
+
+  } catch (error) {
+    mensaje.textContent = error.message;
+    lista.textContent = "No se pudo cargar la galería.";
+  }
+}
+// AGREGAR IMAGEN A LA GALERÍA
+document.getElementById("form-galeria-admin").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const usuario = obtenerUsuario();
+  const mensaje = document.getElementById("mensaje-galeria-admin");
+
+  const datos = {
+    usuario_id: usuario.id,
+    titulo: document.getElementById("titulo-galeria").value,
+    imagen: document.getElementById("imagen-galeria").value,
+    descripcion: document.getElementById("descripcion-galeria").value
+  };
+
+  try {
+    const respuesta = await apiRequest("/api/admin/galeria", {
+      method: "POST",
+      body: JSON.stringify(datos)
+    });
+
+    mensaje.textContent = respuesta.message;
+
+    document.getElementById("form-galeria-admin").reset();
+
+    cargarGaleriaAdmin();
+
+  } catch (error) {
+    mensaje.textContent = error.message;
+  }
+});
+
+cargarServiciosAdmin();
+
+cargarOpinionesPendientes();
+
+  cargarReservas();
+
+  cargarPromocionesAdmin();
+  cargarGaleriaAdmin();
+
+});
+
+</script>
+
+</body>
+</html>
+  

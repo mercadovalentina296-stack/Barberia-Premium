@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Reservar turno | Barbería Premium</title><link rel="stylesheet" href="css/styles.css"><script defer src="js/main.js"></script></head>
+<body><header class="site-header"><div class="container nav-wrap"><a class="brand" href="index.html">BARBERÍA PREMIUM</a><nav class="nav-links" style="display:flex"><a href="index.html">Inicio</a><a href="misReserva.html">Mis reservas</a><a href="inicioSesion.html">Ingresar</a></nav></div></header>
+<main class="form-shell"><h1>Reservar turno</h1><p>Elegí el servicio y la fecha que preferís. Los servicios y las solicitudes de turnos se guardan en la base de datos.</p>
+<form class="form-grid" id="booking-form">
+<div class="field"><label for="service">Servicio</label><select id="service" name="service" required>
+  <option value="">Cargando servicios...</option>
+</select></div>
+<div class="field"><label for="date">Fecha</label><input id="date" name="date" type="date" required></div>
+<div class="field"><label for="time">Horario</label><select id="time" name="time" required><option value="">Seleccionar horario</option><option>09:00</option><option>10:00</option><option>11:00</option><option>12:00</option><option>13:00</option><option>14:00</option><option>15:00</option><option>16:00</option><option>17:00</option></select></div>
+<button class="btn" type="submit">Solicitar turno</button><div id="form-message" class="form-message" role="status"></div>
+</form><p class="form-note">Para reservar tenés que iniciar sesión con tu cuenta.</p></main>
+<footer class="site-footer"><div class="container">© <span data-current-year>2026</span> Barbería Premium</div></footer> <script src="js/api.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const formulario = document.getElementById("booking-form");
+  const mensaje = document.getElementById("form-message");
+  const selector = document.getElementById("service");
+
+  // Cargar servicios
+  try {
+    const data = await apiRequest("/api/servicios");
+
+    selector.innerHTML =
+      '<option value="">Seleccionar servicio</option>';
+
+    data.servicios.forEach(servicio => {
+      const opcion = document.createElement("option");
+      opcion.value = servicio.id;
+      opcion.textContent = servicio.nombre;
+      selector.appendChild(opcion);
+    });
+
+  } catch (error) {
+    console.error(error);
+    selector.innerHTML =
+      '<option value="">Error al cargar servicios</option>';
+  }
+
+  // Guardar reserva
+  formulario.addEventListener("submit", async (e) => {
+    e.preventDefault();
+     
+
+    const usuario = obtenerUsuario();
+
+    if (!usuario) {
+      mensaje.textContent = "Primero tenés que iniciar sesión.";
+      setTimeout(() => {
+        window.location.href = "inicioSesion.html";
+      }, 1500);
+      return;
+    }
+
+    try {
+      mensaje.textContent = "Guardando tu reserva...";
+
+      const data = await apiRequest("/api/reservas", {
+        method: "POST",
+        body: JSON.stringify({
+          usuario_id: usuario.id,
+          servicio_id: selector.value,
+          fecha: document.getElementById("date").value,
+          hora: document.getElementById("time").value
+        })
+      });
+
+      mensaje.textContent = data.message;
+      formulario.reset();
+
+    } catch (error) {
+      mensaje.textContent = error.message;
+    }
+  });
+});
+</script>
+
+</body>
+</html>

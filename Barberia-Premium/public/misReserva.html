@@ -1,0 +1,92 @@
+ <!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis reservas | Barbería Premium</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script defer src="js/main.js"></script>
+</head>
+
+<body>
+
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a class="brand" href="index.html">BARBERÍA PREMIUM</a>
+    <nav class="nav-links" style="display:flex">
+      <a href="index.html">Inicio</a>
+      <a href="servicios.html">Servicios</a>
+      <a href="reservas.html">Reservar turno</a>
+    </nav>
+  </div>
+</header>
+
+<main class="form-shell">
+  <h1>Mis reservas</h1>
+  <p>Consultá los turnos que solicitaste.</p>
+
+  <div id="lista-reservas">
+    Cargando tus reservas...
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    © <span data-current-year>2026</span> Barbería Premium
+  </div>
+</footer>
+
+<script src="js/api.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const lista = document.getElementById("lista-reservas");
+  const usuario = obtenerUsuario();
+
+  if (!usuario) {
+    lista.textContent = "Primero tenés que iniciar sesión.";
+
+    setTimeout(() => {
+      window.location.href = "inicioSesion.html";
+    }, 1500);
+
+    return;
+  }
+
+  try {
+    const data = await apiRequest(
+      `/api/mis-reservas/${usuario.id}`
+    );
+
+    lista.innerHTML = "";
+
+    if (data.reservas.length === 0) {
+      lista.textContent = "Todavía no tenés reservas.";
+      return;
+    }
+
+    data.reservas.forEach(reserva => {
+      const tarjeta = document.createElement("div");
+      tarjeta.className = "service-card";
+
+      const fecha = String(reserva.fecha).split("T")[0];
+
+      tarjeta.innerHTML = `
+        <h3>${reserva.servicio}</h3>
+        <p>Fecha: ${fecha}</p>
+        <p>Horario: ${String(reserva.hora).slice(0, 5)}</p>
+        <p>Estado: ${reserva.estado}</p>
+      `;
+
+      lista.appendChild(tarjeta);
+    });
+
+  } catch (error) {
+    console.error(error);
+    lista.textContent = "No se pudieron cargar tus reservas.";
+  }
+});
+</script>
+
+</body>
+</html>

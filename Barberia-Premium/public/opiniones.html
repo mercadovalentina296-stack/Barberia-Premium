@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opiniones | Barbería Premium</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script defer src="js/main.js"></script>
+</head>
+
+<body>
+
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a class="brand" href="index.html">BARBERÍA PREMIUM</a>
+    <nav class="nav-links" style="display:flex">
+      <a href="index.html">Inicio</a>
+      <a href="servicios.html">Servicios</a>
+      <a href="reservas.html">Reservar</a>
+    </nav>
+  </div>
+</header>
+
+<main class="form-shell">
+  <h1>Opiniones de nuestros clientes</h1>
+  <p>Tu experiencia nos ayuda a mejorar.</p>
+
+  <h2>Dejá tu opinión</h2>
+
+  <form class="form-grid" id="opinion-form">
+    <div class="field">
+      <label for="puntuacion">Puntuación</label>
+      <select id="puntuacion" required>
+        <option value="">Elegir puntuación</option>
+        <option value="5">5 estrellas</option>
+        <option value="4">4 estrellas</option>
+        <option value="3">3 estrellas</option>
+        <option value="2">2 estrellas</option>
+        <option value="1">1 estrella</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="comentario">Tu comentario</label>
+      <textarea id="comentario" rows="4" required
+        placeholder="Contanos cómo fue tu experiencia..."></textarea>
+    </div>
+
+    <button class="btn" type="submit">Enviar opinión</button>
+    <div id="mensaje-opinion" class="form-message" role="status"></div>
+  </form>
+
+  <h2>Opiniones publicadas</h2>
+  <div id="lista-opiniones">Cargando opiniones...</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    © <span data-current-year>2026</span> Barbería Premium
+  </div>
+</footer>
+
+<script src="js/api.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const formulario = document.getElementById("opinion-form");
+  const mensaje = document.getElementById("mensaje-opinion");
+  const lista = document.getElementById("lista-opiniones");
+
+  async function cargarOpiniones() {
+    try {
+      const data = await apiRequest("/api/opiniones");
+      lista.innerHTML = "";
+
+      if (data.opiniones.length === 0) {
+        lista.textContent = "Todavía no hay opiniones publicadas.";
+        return;
+      }
+
+      data.opiniones.forEach(opinion => {
+        const tarjeta = document.createElement("div");
+        tarjeta.className = "service-card";
+
+        const nombre = document.createElement("h3");
+        nombre.textContent = opinion.nombre;
+
+        const estrellas = document.createElement("p");
+        estrellas.textContent = "⭐".repeat(opinion.puntuacion);
+
+        const comentario = document.createElement("p");
+        comentario.textContent = opinion.comentario;
+
+        tarjeta.append(nombre, estrellas, comentario);
+        lista.appendChild(tarjeta);
+      });
+
+    } catch (error) {
+      lista.textContent = "No se pudieron cargar las opiniones.";
+      console.error(error);
+    }
+  }
+
+  formulario.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const usuario = obtenerUsuario();
+
+    if (!usuario) {
+      mensaje.textContent = "Primero tenés que iniciar sesión.";
+      return;
+    }
+
+    try {
+      mensaje.textContent = "Enviando opinión...";
+
+      const data = await apiRequest("/api/opiniones", {
+        method: "POST",
+        body: JSON.stringify({
+          usuario_id: usuario.id,
+          puntuacion: Number(document.getElementById("puntuacion").value),
+          comentario: document.getElementById("comentario").value
+        })
+      });
+
+      mensaje.textContent = data.message;
+      formulario.reset();
+      await cargarOpiniones();
+
+    } catch (error) {
+      mensaje.textContent = error.message;
+    }
+  });
+
+  cargarOpiniones();
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Servicios | Barbería Premium</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script defer src="js/main.js"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a class="brand" href="index.html">BARBERÍA PREMIUM</a>
+    <nav class="nav-links" style="display:flex">
+      <a href="index.html">Inicio</a>
+      <a href="reservas.html">Reservar</a>
+      <a href="galeria.html">Galería</a>
+      <a href="promociones.html">Promociones</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <section class="section">
+    <div class="section-heading">
+      <span class="eyebrow">Barbería Premium</span>
+      <h1>Nuestros servicios</h1>
+      <p>Elegí el servicio que más te guste y preparate para renovar tu estilo.</p>
+    </div>
+
+    <div id="lista-servicios" class="services-grid">
+      <p>Cargando servicios...</p>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    © <span data-current-year>2026</span> Barbería Premium
+  </div>
+</footer>
+
+<script src="js/api.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const lista = document.getElementById("lista-servicios");
+
+  try {
+    const servicios = await obtenerServicios();
+
+    if (!servicios || servicios.length === 0) {
+      lista.textContent = "Todavía no hay servicios disponibles.";
+      return;
+    }
+
+    lista.innerHTML = servicios.map(servicio => `
+      <article class="servicio-card">
+        <h3>${servicio.nombre}</h3>
+        <p>${servicio.descripcion || ""}</p>
+        <p class="servicio-precio">Precio: $${servicio.precio}</p>
+        <p>Duración: ${servicio.duracion} minutos</p>
+        <a class="btn" href="reservas.html">Reservar turno</a>
+      </article>
+    `).join("");
+
+  } catch (error) {
+    lista.textContent = error.message;
+  }
+});
+</script>
+
+</body>
+</html>

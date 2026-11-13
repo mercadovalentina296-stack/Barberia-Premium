@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Promociones | Barbería Premium</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script defer src="js/main.js"></script>
+  <script defer src="js/api.js"></script>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="index.html">Barbería Premium</a>
+      <nav>
+        <a href="index.html">Inicio</a>
+        <a href="servicios.html">Servicios</a>
+        <a href="reservas.html">Reservar</a>
+        <a href="galeria.html">Galería</a>
+        <a href="opiniones.html">Opiniones</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="section">
+      <h1>Promociones y descuentos</h1>
+      <p>¡Aprovechá nuestras ofertas especiales!</p>
+
+      <p id="mensaje-promociones">Cargando promociones...</p>
+      <div id="lista-promociones" class="services-grid"></div>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const lista = document.getElementById("lista-promociones");
+      const mensaje = document.getElementById("mensaje-promociones");
+
+      try {
+        const data = await apiRequest("/api/promociones");
+
+        lista.innerHTML = "";
+
+        if (!data.promociones || data.promociones.length === 0) {
+          mensaje.textContent = "Próximamente tendremos nuevas promociones.";
+          return;
+        }
+
+         data.promociones.forEach(item => {
+  const tarjeta = document.createElement("article");
+  tarjeta.className = "service-card";
+
+  const titulo = document.createElement("h3");
+  titulo.textContent = item.titulo;
+
+  const descuento = document.createElement("h2");
+  descuento.textContent = item.descuento + "% DE DESCUENTO";
+  descuento.style.color = "#d4af37";
+
+  const descripcion = document.createElement("p");
+  descripcion.textContent = item.descripcion || "";
+
+  tarjeta.appendChild(titulo);
+  tarjeta.appendChild(descuento);
+  tarjeta.appendChild(descripcion);
+
+  lista.appendChild(tarjeta);
+});
+        mensaje.textContent = "";
+
+      } catch (error) {
+        console.error(error);
+        mensaje.textContent = "No se pudieron cargar las promociones.";
+      }
+    });
+  </script>
+
+</body>
+</html>

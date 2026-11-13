@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galería | Barbería Premium</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script defer src="js/main.js"></script>
+  <script defer src="js/api.js"></script>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="index.html">Barbería Premium</a>
+      <nav>
+        <a href="index.html">Inicio</a>
+        <a href="servicios.html">Servicios</a>
+        <a href="reservas.html">Reservar</a>
+        <a href="opiniones.html">Opiniones</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="section">
+      <h1>Nuestra galería</h1>
+      <p>Descubrí nuestros estilos de cortes y barba.</p>
+
+      <p id="mensaje-galeria">Cargando imágenes...</p>
+
+      <div id="lista-galeria" class="services-grid"></div>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const lista = document.getElementById("lista-galeria");
+      const mensaje = document.getElementById("mensaje-galeria");
+
+      try {
+        const data = await apiRequest("/api/galeria");
+        console.log("Respuesta de galeria: ", data);
+
+        lista.innerHTML = "";
+
+        if (data.imagenes.length === 0) {
+          mensaje.textContent = "Próximamente tendremos nuevos cortes.";
+          return;
+        }
+
+        data.imagenes.forEach(item => {
+          const tarjeta = document.createElement("article");
+          tarjeta.className = "service-card gallery-card";
+
+          const foto = document.createElement("img");
+
+        foto.src = "/" + item.imagen.replace(/^\/+/, "");
+        foto.alt = item.titulo;
+        foto.className = "gallery-image";
+
+          const titulo = document.createElement("h3");
+          titulo.textContent = item.titulo;
+
+          const descripcion = document.createElement("p");
+          descripcion.textContent = item.descripcion || "";
+
+          tarjeta.append(foto,titulo, descripcion);
+          lista.appendChild(tarjeta);
+        });
+
+        mensaje.textContent = "";
+
+      } catch (error) {
+        mensaje.textContent = "No se pudo cargar la galería.";
+        console.error(error);
+      }
+    });
+  </script>
+
+</body>
+</html>
